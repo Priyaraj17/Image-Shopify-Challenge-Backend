@@ -1,56 +1,88 @@
-const fs = require("fs");
-const images = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/images.json`)
-);
+const Image = require("../models/imageModel");
 
-exports.getAllImages = (req, res) => {
-  res.status(200).json({
-    status: "success",
-    results: images.length,
-    data: {
-      images,
-    },
-  });
+exports.getAllImages = async (req, res) => {
+  try {
+    const images = await Image.find();
+    res.status(200).json({
+      status: "success",
+      results: images.length,
+      data: {
+        images,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err,
+    });
+  }
 };
 
-exports.createImage = (req, res) => {
-  const newId = images[images.length - 1].id + 1;
-  const newImage = Object.assign({ id: newId }, req.body);
-  images.push(newImage);
-  fs.writeFile("../images.json", JSON.stringify(images), (err) => {
+exports.createImage = async (req, res) => {
+  try {
+    const newImage = await Image.create(req.body);
     res.status(201).json({
       status: "success",
       data: {
-        image: newImage,
+        newImage,
       },
     });
-  });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err,
+    });
+  }
 };
 
-exports.getImage = (req, res) => {
-  const id = req.params.id * 1;
-  const image = images.find((el) => el.id === id);
-  res.status(200).json({
-    status: "success",
-    data: {
-      image,
-    },
-  });
+exports.getImage = async (req, res) => {
+  try {
+    const image = Image.findById(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: {
+        image,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err,
+    });
+  }
 };
 
-exports.updateImage = (req, res) => {
-  const id = req.params.id * 1;
-  res.status(200).json({
-    status: "success",
-    data: {
-      image: "<Updated Image>",
-    },
-  });
+exports.updateImage = async (req, res) => {
+  try {
+    const image = await Image.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      status: "success",
+      data: {
+        image,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err,
+    });
+  }
 };
 
-exports.deleteImage = (req, res) => {
-  res.status(204).json({
-    status: "success",
-    data: "null",
-  });
+exports.deleteImage = async (req, res) => {
+  try {
+    await Image.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: "success",
+      data: "null",
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err,
+    });
+  }
 };
